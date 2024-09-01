@@ -43,7 +43,7 @@ dockers:
         "ghcr.io/qiniu/reviewbot:{{ .Version }}",
         "ghcr.io/qiniu/reviewbot:latest",
       ]
-    dockerfile: Dockerfile
+    dockerfile: ./Dockerfile
     use: buildx
     build_flag_templates:
       - "--pull"

@@ -39,19 +39,20 @@ ENV StyleCheck_DOWNLOAD_SHA256 51c34d738520c1389d71998a9ab0e6dabe0d7cf262149f3e0
 RUN curl -fsSL "$StyleCheck_DOWNLOAD_URL" -o checkstyle.jar \
     && echo "$StyleCheck_DOWNLOAD_SHA256  checkstyle.jar" | sha256sum -c -
 RUN java -jar checkstyle.jar  --version
-COPY reviewbot /reviewbot
-
 
 # SSH config
 RUN mkdir -p /root/.ssh && chown -R root /root/.ssh/ &&  chgrp -R root /root/.ssh/ \
     && git config --global url."git@github.com:".insteadOf https://github.com/ \
     && git config --global url."git://".insteadOf https://
-COPY deploy/config /root/.ssh/config
-COPY deploy/github-known-hosts /github_known_hosts
+COPY ./deploy/config /root/.ssh/config
+COPY ./deploy/github-known-hosts /github_known_hosts
 
 # set go proxy and private repo
 RUN go env -w GOPROXY=https://goproxy.cn,direct \
     && go env -w GOPRIVATE=github.com/qbox
+
+# copy reviewbot binary
+COPY ./reviewbot /reviewbot
 
 EXPOSE 8888
 
