@@ -26,8 +26,11 @@ dockers:
         "ghcr.io/qiniu/reviewbot:{{ .Version }}",
         "ghcr.io/qiniu/reviewbot:latest",
       ]
-    dockerfile: Dockerfile
+    dockerfile: ./Dockerfile
     use: buildx
+    files:
+      - ./deploy/config
+      - ./deploy/github-known-hosts
     build_flag_templates:
       - "--pull"
       - "--label=io.artifacthub.package.readme-url=https://raw.githubusercontent.com/qiniu/reviewbot/master/README.md"
@@ -43,7 +46,7 @@ dockers:
         "ghcr.io/qiniu/reviewbot:{{ .Version }}",
         "ghcr.io/qiniu/reviewbot:latest",
       ]
-    dockerfile: Dockerfile
+    dockerfile: ./Dockerfile
     use: buildx
     build_flag_templates:
       - "--pull"
