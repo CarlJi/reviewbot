@@ -27,11 +27,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qiniu/reviewbot/config"
 	"github.com/qiniu/reviewbot/internal/lintersutil"
 	"github.com/qiniu/reviewbot/internal/metric"
-	"github.com/qiniu/reviewbot/internal/runner"
-	"github.com/qiniu/reviewbot/internal/storage"
 	"github.com/qiniu/x/log"
 	"github.com/qiniu/x/xlog"
 )
@@ -96,30 +93,6 @@ type LinterOutput struct {
 	Message string
 	// StartLine required when using multi-line comments
 	StartLine int
-}
-
-// Agent knows necessary information in order to run linters.
-type Agent struct {
-	// ID each linter execution has a unique id.
-	ID string
-	// Context is the context of the agent.
-	Context context.Context
-	// Storage knows how to store and retrieve the linter logs.
-	Storage storage.Storage
-	// Runner is the way to run the linter.	like docker, local, etc.
-	Runner runner.Runner
-	// Provider knows how to interact with the git provider. such as github, gitlab, etc.
-	Provider Provider
-	// LinterConfig is the linter configuration.
-	LinterConfig config.Linter
-	// RepoDir is the repo directory.
-	RepoDir string
-	// GenLogKey generates the log key.
-	GenLogKey func() string
-	// GenLogViewUrl generates the log view url.
-	GenLogViewUrl func() string
-	// linter result reference
-	LinterReference map[*regexp.Regexp]string
 }
 
 const CommentFooter = `
@@ -219,17 +192,7 @@ func Report(ctx context.Context, a Agent, lintResults map[string][]LinterOutput)
 
 	log.Infof("[%s] found %d files with valid %d linter errors related to this PR %d (%s) \n", linterName, len(lintResults), countLinterErrors(lintResults), num, orgRepo)
 
-	// If the result has a reference to the linterReference , then the link will be added to the result.
-	if a.LinterReference != nil {
-		for fileName, outputs := range lintResults {
-			for i, output := range outputs {
-				ref, exist := referenceFilter(output.Message, a)
-				if exist {
-					lintResults[fileName][i].Message = fmt.Sprintf("[%s](%s)", output.Message, ref)
-				}
-			}
-		}
-	}
+	a.ApplyIssueReferences(lintResults)
 
 	if len(lintResults) > 0 {
 		metric.IncIssueCounter(orgRepo, linterName, a.Provider.GetCodeReviewInfo().URL, a.Provider.GetCodeReviewInfo().HeadSHA, float64(countLinterErrors(lintResults)))

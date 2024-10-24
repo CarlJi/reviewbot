@@ -487,7 +487,7 @@ func (s *Server) handle(ctx context.Context, event *github.PullRequestEvent) err
 			return s.serverAddr + "/view/" + agent.GenLogKey()
 		}
 
-		agent.LinterReference = s.linterReference
+		agent.IssueReferences = s.config.GetCompiledIssueReferences(name)
 
 		if err := fn(ctx, agent); err != nil {
 			if errors.Is(err, context.Canceled) {
